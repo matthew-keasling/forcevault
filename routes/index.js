@@ -1,9 +1,12 @@
-var express = require('express');
-var router = express.Router();
+var router = require('express').Router();
+var pool = require('../pool');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express', dburl: process.env.DATABASE_URL });
+  pool.query('SELECT COUNT(*) FROM users',function(err,result){
+    data = 'Number of users: '+result.rows[0].count;
+    res.render('index', { title: 'Express', data: data });
+  });
 });
 
 module.exports = router;

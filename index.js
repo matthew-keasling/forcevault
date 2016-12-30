@@ -1,9 +1,19 @@
+require('dotenv').config();
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var pool = require('./pool');
+
+// pool.query(
+//   'SELECT table_schema,table_name FROM information_schema.tables WHERE table_name=$1;',
+//   ['users'],
+//   function(err, result){
+//     console.log(JSON.stringify(result,null,2));
+//   }
+// );
 
 var index = require('./routes/index');
 var users = require('./routes/users');
