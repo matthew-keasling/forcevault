@@ -1,24 +1,35 @@
 require('dotenv').config();
 var express = require('express');
+var session = require('express-session');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
-var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 var pool = require('./pool');
-
-// pool.query(
-//   'SELECT table_schema,table_name FROM information_schema.tables WHERE table_name=$1;',
-//   ['users'],
-//   function(err, result){
-//     console.log(JSON.stringify(result,null,2));
-//   }
-// );
-
-var index = require('./routes/index');
-var users = require('./routes/users');
+var pgSession = require('connect-pg-simple')(session);
+var fs = require('fs');
+var util = require('./util');
 
 var app = express();
+
+app.use(session({
+  secret: process.env.COOKIE_SECRET,
+  saveUninitialized: false,
+  resave: false,
+  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
+}));
+
+passport.use(new LocalStrategy({
+    usernameField: 'email'
+  },
+  function(username, password, done){
+    return done(null, {});
+  }
+));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -29,11 +40,22 @@ app.set('view engine', 'ejs');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(function(req, res, next){
+  res.locals.req = req;
+  res.locals.res = res;
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
-app.use('/users', users);
+app.use('/', require('./routes/index'));
+util.getFiles('./routes').forEach(file => {
+  if(file=='routes/index.js') return;
+  var routeName = './'+file;
+  var route = require(routeName);
+  var routePath = '/'+file.replace(/routes\/(.+)\.\w+?$/,'$1');
+  app.use(routePath, route);
+  console.log('Dynamic route: ' + routePath + ' => ' + routeName);
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

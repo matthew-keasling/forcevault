@@ -1,4 +1,5 @@
 const pg = require('pg');
+pg.defaults.ssl = true;
 const url = require('url');
 const params = url.parse(process.env.DATABASE_URL);
 const auth = params.auth.split(':');

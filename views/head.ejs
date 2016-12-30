@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <header>
+      <% if(req.user){ %>
+        <pre><%= JSON.serialize(req.user) %></pre>
+      <% } else { %>
+        <a href='/login'>Login</a>
+      <% } %>
+    </header>
