@@ -7,7 +7,7 @@
   <body>
     <header>
       <% if(req.user){ %>
-        <pre><%= JSON.serialize(req.user) %></pre>
+        <pre><%= JSON.stringify(req.user) %></pre>
       <% } else { %>
         <a href='/login'>Login</a>
       <% } %>

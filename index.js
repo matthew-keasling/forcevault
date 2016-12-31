@@ -11,6 +11,7 @@ var pool = require('./pool');
 var pgSession = require('connect-pg-simple')(session);
 var fs = require('fs');
 var util = require('./util');
+var config = require('./config');
 
 var app = express();
 
@@ -21,12 +22,19 @@ app.use(session({
   cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }
 }));
 
-passport.use(new LocalStrategy({
+passport.serializeUser(function(user,done){
+  done(null,user.username);
+});
+passport.deserializeUser(function(username,done){
+  done(null,{username:username});
+});
+passport.use('login', new LocalStrategy({
     usernameField: 'email'
   },
   function(username, password, done){
+    console.log('login', arguments);
     console.log(username, password);
-    return done(null, {});
+    return done(null, {username: username, password: password});
   }
 ));
 app.use(passport.initialize());
@@ -42,8 +50,10 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(function(req, res, next){
-  res.locals.req = req;
-  res.locals.res = res;
+  var locals = config.locals;
+  locals.req = req;
+  locals.res = res;
+  res.locals = locals;
   next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
